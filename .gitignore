@@ -1,0 +1,23 @@
+# local-only working artifacts (superpowers specs/plans) — never commit
+/docs/*
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# data — raw and processed live outside git (see data/README.md)
+data/raw/
+data/processed/
+
+# models and run artifacts (the runs.csv experiment log IS tracked)
+models/
+results/*
+!results/runs.csv
+
+# jupyter
+.ipynb_checkpoints/
+
+# os/editor
+.DS_Store
