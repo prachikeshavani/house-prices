@@ -1,0 +1,2 @@
+spec,cv_rmse_usd,cv_rmsle,notes
+v1_full_pipeline,77885.38,0.15453,first OLS fit: ordinal + impute + log + one-hot

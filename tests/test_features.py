@@ -13,21 +13,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from house_prices.data import load_test, load_train
+from house_prices.data import load_test
 from house_prices.features import build_features, encode_ordinal, inverse_target
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-@pytest.fixture(scope="module")
-def train():
-    return load_train()
-
-
-@pytest.fixture(scope="module")
-def built(train):
-    X, y = build_features(train)
-    return X, y
 
 
 # ---------- data.py ----------

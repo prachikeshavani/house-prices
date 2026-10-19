@@ -94,6 +94,16 @@ def build_features(df: pd.DataFrame, fit: bool = True):
     return X, y
 
 
+def align_columns(X: pd.DataFrame, reference_columns) -> pd.DataFrame:
+    """Reindex X to the reference (train's) column language.
+
+    One-hot invents a column per category, and the test set doesn't have
+    every category the train set has (and vice versa): missing columns
+    become 0 ("this house is not in that category"), extra columns drop.
+    """
+    return X.reindex(columns=list(reference_columns), fill_value=0)
+
+
 def inverse_target(y_log: np.ndarray) -> np.ndarray:
     """Map log-space predictions back to dollars."""
     return np.expm1(y_log)
