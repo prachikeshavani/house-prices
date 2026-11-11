@@ -36,6 +36,13 @@ SKEWED_NUMERIC = [
 ID_COLUMNS = ["Id"]
 TARGET = "SalePrice"
 
+# Thursday's evidence: one twin from each near-duplicate pair gets dropped
+# (the other is kept). Monday's correlations decided which is the "keeper":
+# GarageCars .640 > GarageArea .623 · TotalBsmtSF .614 > 1stFlrSF .606 ·
+# GrLivArea .709 > TotRmsAbvGrd .534
+TWIN_DROPS = ["GarageArea", "1stFlrSF", "TotRmsAbvGrd"]
+RARE_MIN_COUNT = 10
+
 
 def encode_ordinal(df: pd.DataFrame) -> pd.DataFrame:
     """Map quality words to 1-5; blanks (absence) become 0."""
@@ -102,6 +109,52 @@ def align_columns(X: pd.DataFrame, reference_columns) -> pd.DataFrame:
     become 0 ("this house is not in that category"), extra columns drop.
     """
     return X.reindex(columns=list(reference_columns), fill_value=0)
+
+
+# ---------- Friday's candidate specs ----------
+
+def collapse_rare_categories(df: pd.DataFrame, min_count: int = RARE_MIN_COUNT) -> pd.DataFrame:
+    """S1: any text category with fewer than min_count houses becomes "Other".
+
+    Thursday found categories that appear once (RoofMatl_ClyTile) act as
+    private levers — leverage 1.0, absurd coefficients. Absence blanks
+    (NaN) are untouched: "no pool" is a fact, not a rare category.
+    """
+    df = df.copy()
+    for col in df.select_dtypes(include=["object", "string"]).columns:
+        rare = df[col].value_counts()
+        rare = set(rare[rare < min_count].index)
+        if rare:
+            df[col] = df[col].replace(rare, "Other")
+    return df
+
+
+def build_features_collapse_rare(df: pd.DataFrame, min_count: int = RARE_MIN_COUNT):
+    """Spec S1: collapse rare categories, then the standard pipeline."""
+    return build_features(collapse_rare_categories(df, min_count))
+
+
+def build_features_drop_twins(df: pd.DataFrame):
+    """Spec S3: drop one collinear twin per pair (TWIN_DROPS), then pipeline."""
+    df = df.drop(columns=[c for c in TWIN_DROPS if c in df.columns])
+    return build_features(df)
+
+
+def build_features_collapse_and_drop_twins(df: pd.DataFrame, min_count: int = RARE_MIN_COUNT):
+    """Spec S4: S1 and S3 together — the kitchen-sink challenger."""
+    df = collapse_rare_categories(df, min_count)
+    df = df.drop(columns=[c for c in TWIN_DROPS if c in df.columns])
+    return build_features(df)
+
+
+# Names -> feature functions, for the spec arena and for submission day:
+# the champion's name is serialized, and its function is looked up here.
+SPEC_FNS = {
+    "v1_full_pipeline": build_features,
+    "S1_collapse_rare": build_features_collapse_rare,
+    "S3_drop_twins": build_features_drop_twins,
+    "S4_collapse_and_drop_twins": build_features_collapse_and_drop_twins,
+}
 
 
 def inverse_target(y_log: np.ndarray) -> np.ndarray:

@@ -1,2 +1,6 @@
 spec,cv_rmse_usd,cv_rmsle,notes
 v1_full_pipeline,77885.38,0.15453,first OLS fit: ordinal + impute + log + one-hot
+S1_collapse_rare,71996.26,0.15171,Thursday: 1-house categories had leverage 1.0; collapse removes memorization
+S3_drop_twins,78524.96,0.15491,Monday/Thursday: drop one collinear twin per r>=0.82 pair
+S4_collapse_and_drop_twins,73695.06,0.15317,kitchen sink: do S1 and S3 stack?
+S2_no_outliers,84338.37,0.14818,SENSITIVITY ONLY (not adoptable): measures the pull of Cook's leaders 826/524
